@@ -19,15 +19,15 @@ import {
     Crown,
     Flame,
     Medal,
-    Trophy as TrophyIcon,
     BarChart2,
     X,
     ChevronLeft,
-    ChevronRight
+    ChevronRight,
+    HelpCircle
 } from 'lucide-react';
 
 const PuzzleGame: React.FC = () => {
-    // Enhanced state management
+    // State management
     const [tiles, setTiles] = useState<number[]>([]);
     const [isWon, setIsWon] = useState<boolean>(false);
     const [isPaused, setIsPaused] = useState<boolean>(false);
@@ -47,8 +47,6 @@ const PuzzleGame: React.FC = () => {
     const [perfectMoves, setPerfectMoves] = useState<number>(0);
     const [hintsUsed, setHintsUsed] = useState<number>(0);
     const [gameMode, setGameMode] = useState<'classic' | 'time-attack' | 'moves-limit'>('classic');
-    const [timeLimit, setTimeLimit] = useState<number>(300); // 5 minutes
-    const [movesLimit, setMovesLimit] = useState<number>(100);
     const [showLeaderboard, setShowLeaderboard] = useState<boolean>(false);
     const [playerName, setPlayerName] = useState<string>('Player');
     const [achievements, setAchievements] = useState<string[]>([]);
@@ -60,11 +58,15 @@ const PuzzleGame: React.FC = () => {
     const [leaderboardData, setLeaderboardData] = useState<any[]>([]);
     const [isSolving, setIsSolving] = useState<boolean>(false);
     const [showPreview, setShowPreview] = useState<boolean>(false);
+    const [showMenu, setShowMenu] = useState<boolean>(false);
 
     const gameContainerRef = useRef<HTMLDivElement>(null);
     const moveSoundRef = useRef<HTMLAudioElement | null>(null);
     const winSoundRef = useRef<HTMLAudioElement | null>(null);
     const clickSoundRef = useRef<HTMLAudioElement | null>(null);
+
+    let timeLimit: number = 300;
+    let movesLimit: number = 100;
 
     // Initialize audio
     useEffect(() => {
@@ -179,7 +181,6 @@ const PuzzleGame: React.FC = () => {
                     const newTime = prev + 1;
                     if (gameMode === 'time-attack' && newTime >= timeLimit) {
                         setIsPlaying(false);
-                        // Game over
                     }
                     return newTime;
                 });
@@ -506,7 +507,7 @@ const PuzzleGame: React.FC = () => {
             </div>
 
             {/* Floating Particles */}
-            {[...Array(20)].map((_, i) => (
+            {[...Array(10)].map((_, i) => (
                 <div
                     key={i}
                     className="absolute rounded-full animate-float"
@@ -525,159 +526,52 @@ const PuzzleGame: React.FC = () => {
             ))}
 
             {/* Header */}
-            <div className="text-center mb-8 relative z-10">
-                <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent mb-2">
-                    🧩 PUZZLE UNIVERSE
+            <div className="text-center mb-6 relative z-10">
+                <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent mb-2">
+                    🧩 Puzzle Universe
                 </h1>
-                <p className="text-xl text-white/80 font-medium">
+                <p className="text-lg text-white/80 font-medium">
                     Ultimate Sliding Puzzle Experience
                 </p>
             </div>
 
             {/* Game Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 w-full max-w-4xl relative z-10">
-                <div className={`${themeClasses.card} rounded-2xl p-4 text-center border`}>
-                    <div className="flex items-center justify-center mb-2">
-                        <Timer className="w-6 h-6 text-blue-400 mr-2" />
-                        <span className="text-2xl font-bold text-white">{formatTime(timer)}</span>
+            <div className="flex flex-wrap justify-center gap-4 mb-6 w-full max-w-4xl relative z-10">
+                <div className={`${themeClasses.card} rounded-2xl p-3 text-center border flex items-center gap-2`}>
+                    <Timer className="w-5 h-5 text-blue-400" />
+                    <div>
+                        <div className="text-lg font-bold text-white">{formatTime(timer)}</div>
+                        <p className="text-xs text-white/60">Time</p>
                     </div>
-                    <p className="text-sm text-white/60">Time</p>
-                    {gameMode === 'time-attack' && (
-                        <div className="mt-2 bg-red-500/20 rounded-full h-2">
-                            <div
-                                className="bg-red-500 h-2 rounded-full transition-all duration-1000"
-                                style={{ width: `${(timer / timeLimit) * 100}%` }}
-                            ></div>
-                        </div>
-                    )}
                 </div>
 
-                <div className={`${themeClasses.card} rounded-2xl p-4 text-center border`}>
-                    <div className="flex items-center justify-center mb-2">
-                        <Target className="w-6 h-6 text-green-400 mr-2" />
-                        <span className="text-2xl font-bold text-white">{moveCount}</span>
+                <div className={`${themeClasses.card} rounded-2xl p-3 text-center border flex items-center gap-2`}>
+                    <Target className="w-5 h-5 text-green-400" />
+                    <div>
+                        <div className="text-lg font-bold text-white">{moveCount}</div>
+                        <p className="text-xs text-white/60">Moves</p>
                     </div>
-                    <p className="text-sm text-white/60">Moves</p>
-                    {gameMode === 'moves-limit' && (
-                        <div className="mt-2 bg-orange-500/20 rounded-full h-2">
-                            <div
-                                className="bg-orange-500 h-2 rounded-full transition-all duration-300"
-                                style={{ width: `${(moveCount / movesLimit) * 100}%` }}
-                            ></div>
-                        </div>
-                    )}
                 </div>
 
-                <div className={`${themeClasses.card} rounded-2xl p-4 text-center border`}>
-                    <div className="flex items-center justify-center mb-2">
-                        <Flame className="w-6 h-6 text-orange-400 mr-2" />
-                        <span className="text-2xl font-bold text-white">{combo}</span>
+                <div className={`${themeClasses.card} rounded-2xl p-3 text-center border flex items-center gap-2`}>
+                    <Flame className="w-5 h-5 text-orange-400" />
+                    <div>
+                        <div className="text-lg font-bold text-white">{combo}</div>
+                        <p className="text-xs text-white/60">Combo</p>
                     </div>
-                    <p className="text-sm text-white/60">Combo</p>
-                    {combo > 0 && (
-                        <div className="mt-2 bg-orange-500/20 rounded-full h-2">
-                            <div
-                                className="bg-orange-500 h-2 rounded-full animate-pulse"
-                                style={{ width: `${Math.min((combo / 10) * 100, 100)}%` }}
-                            ></div>
-                        </div>
-                    )}
                 </div>
 
-                <div className={`${themeClasses.card} rounded-2xl p-4 text-center border`}>
-                    <div className="flex items-center justify-center mb-2">
-                        <Crown className="w-6 h-6 text-yellow-400 mr-2" />
-                        <span className="text-2xl font-bold text-white">{bestTime > 0 ? formatTime(bestTime) : '--:--'}</span>
+                <div className={`${themeClasses.card} rounded-2xl p-3 text-center border flex items-center gap-2`}>
+                    <Crown className="w-5 h-5 text-yellow-400" />
+                    <div>
+                        <div className="text-lg font-bold text-white">{bestTime > 0 ? formatTime(bestTime) : '--:--'}</div>
+                        <p className="text-xs text-white/60">Best Time</p>
                     </div>
-                    <p className="text-sm text-white/60">Best Time</p>
                 </div>
-            </div>
-
-            {/* Game Controls */}
-            <div className="flex flex-wrap gap-3 mb-8 justify-center relative z-10">
-                <button
-                    onClick={() => setShowSettings(true)}
-                    className="px-4 py-2 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20 transition-all flex items-center gap-2"
-                >
-                    <Settings className="w-4 h-4" />
-                    Settings
-                </button>
-
-                <select
-                    value={difficulty}
-                    onChange={(e) => setDifficulty(Number(e.target.value) as 3 | 4 | 5)}
-                    className="px-4 py-2 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white"
-                >
-                    <option value={3}>3×3 Easy</option>
-                    <option value={4}>4×4 Medium</option>
-                    <option value={5}>5×5 Hard</option>
-                </select>
-
-                <select
-                    value={gameMode}
-                    onChange={(e) => setGameMode(e.target.value as 'classic' | 'time-attack' | 'moves-limit')}
-                    className="px-4 py-2 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white"
-                >
-                    <option value="classic">Classic</option>
-                    <option value="time-attack">Time Attack</option>
-                    <option value="moves-limit">Moves Limit</option>
-                </select>
-
-                <select
-                    value={theme}
-                    onChange={(e) => setTheme(e.target.value as 'neon' | 'glass' | 'cyber' | 'cosmic')}
-                    className="px-4 py-2 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white"
-                >
-                    <option value="neon">🌟 Neon</option>
-                    <option value="glass">💎 Glass</option>
-                    <option value="cyber">🤖 Cyber</option>
-                    <option value="cosmic">🌌 Cosmic</option>
-                </select>
-
-                <button
-                    onClick={() => setIsPaused(!isPaused)}
-                    className="px-4 py-2 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20 transition-all flex items-center gap-2"
-                >
-                    {isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
-                    {isPaused ? 'Resume' : 'Pause'}
-                </button>
-
-                <button
-                    onClick={showHintMove}
-                    disabled={hintsUsed >= 3 && gameMode !== 'classic'}
-                    className="px-4 py-2 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20 transition-all flex items-center gap-2 disabled:opacity-50"
-                >
-                    <Lightbulb className="w-4 h-4" />
-                    Hint ({3 - hintsUsed})
-                </button>
-
-                <button
-                    onClick={() => setShowPreview(!showPreview)}
-                    className="px-4 py-2 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20 transition-all flex items-center gap-2"
-                >
-                    {showPreview ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    {showPreview ? 'Hide Solution' : 'Show Solution'}
-                </button>
-
-                <button
-                    onClick={autoSolve}
-                    className="px-4 py-2 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20 transition-all flex items-center gap-2"
-                >
-                    <Shuffle className="w-4 h-4" />
-                    Auto Solve
-                </button>
-
-                <button
-                    onClick={resetGame}
-                    className={`px-6 py-2 rounded-xl ${themeClasses.button} text-white font-medium transition-all flex items-center gap-2`}
-                >
-                    <RotateCcw className="w-4 h-4" />
-                    New Game
-                </button>
             </div>
 
             {/* Puzzle Grid */}
-            <div className={`${themeClasses.card} rounded-3xl p-6 border relative z-10`}>
+            <div className={`${themeClasses.card} rounded-3xl p-6 border relative z-10 mb-6`}>
                 <div
                     className={`grid gap-2 w-full max-w-md mx-auto`}
                     style={{ gridTemplateColumns: `repeat(${difficulty}, 1fr)` }}
@@ -718,7 +612,7 @@ const PuzzleGame: React.FC = () => {
 
             {/* Solution Preview */}
             {showPreview && (
-                <div className={`${themeClasses.card} rounded-2xl p-4 mt-6 w-full max-w-md text-center border relative z-10`}>
+                <div className={`${themeClasses.card} rounded-2xl p-4 mt-4 w-full max-w-md text-center border relative z-10 mb-6`}>
                     <h3 className="text-white font-medium mb-2">Solution Preview</h3>
                     <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${difficulty}, 1fr)` }}>
                         {Array.from({ length: difficulty * difficulty }, (_, i) => i + 1).map((num, index) => (
@@ -734,8 +628,122 @@ const PuzzleGame: React.FC = () => {
                 </div>
             )}
 
+            {/* Game Controls */}
+            <div className="flex flex-wrap gap-3 mb-6 justify-center relative z-10">
+                <button
+                    onClick={resetGame}
+                    className={`px-5 py-2 rounded-xl ${themeClasses.button} text-white font-medium transition-all flex items-center gap-2`}
+                >
+                    <RotateCcw className="w-4 h-4" />
+                    New Game
+                </button>
+
+                <button
+                    onClick={() => setIsPaused(!isPaused)}
+                    className={`px-5 py-2 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20 transition-all flex items-center gap-2`}
+                >
+                    {isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+                    {isPaused ? 'Resume' : 'Pause'}
+                </button>
+
+                <button
+                    onClick={showHintMove}
+                    disabled={hintsUsed >= 3 && gameMode !== 'classic'}
+                    className={`px-5 py-2 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20 transition-all flex items-center gap-2 disabled:opacity-50`}
+                >
+                    <Lightbulb className="w-4 h-4" />
+                    Hint ({3 - hintsUsed})
+                </button>
+
+                <button
+                    onClick={() => setShowPreview(!showPreview)}
+                    className={`px-5 py-2 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20 transition-all flex items-center gap-2`}
+                >
+                    {showPreview ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showPreview ? 'Hide Solution' : 'Show Solution'}
+                </button>
+
+                <button
+                    onClick={() => setShowMenu(!showMenu)}
+                    className={`px-5 py-2 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20 transition-all flex items-center gap-2`}
+                >
+                    <Settings className="w-4 h-4" />
+                    More
+                </button>
+            </div>
+
+            {/* Expanded Menu */}
+            {showMenu && (
+                <div className={`${themeClasses.card} rounded-2xl p-4 mb-6 w-full max-w-md relative z-10`}>
+                    <div className="grid grid-cols-2 gap-3">
+                        <button
+                            onClick={autoSolve}
+                            className="px-4 py-2 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20 transition-all flex items-center gap-2"
+                        >
+                            <Shuffle className="w-4 h-4" />
+                            Auto Solve
+                        </button>
+
+                        <button
+                            onClick={() => setShowLeaderboard(true)}
+                            className="px-4 py-2 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20 transition-all flex items-center gap-2"
+                        >
+                            <Trophy className="w-4 h-4" />
+                            Leaderboard
+                        </button>
+
+                        <button
+                            onClick={() => setShowAchievementsModal(true)}
+                            className="px-4 py-2 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20 transition-all flex items-center gap-2"
+                        >
+                            <Medal className="w-4 h-4" />
+                            Achievements
+                        </button>
+
+                        <button
+                            onClick={() => setShowStats(true)}
+                            className="px-4 py-2 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white/20 transition-all flex items-center gap-2"
+                        >
+                            <BarChart2 className="w-4 h-4" />
+                            Stats
+                        </button>
+
+                        <select
+                            value={difficulty}
+                            onChange={(e) => setDifficulty(Number(e.target.value) as 3 | 4 | 5)}
+                            className="px-4 py-2 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white col-span-2"
+                        >
+                            <option value={3}>3×3 Easy</option>
+                            <option value={4}>4×4 Medium</option>
+                            <option value={5}>5×5 Hard</option>
+                        </select>
+
+                        <select
+                            value={gameMode}
+                            onChange={(e) => setGameMode(e.target.value as 'classic' | 'time-attack' | 'moves-limit')}
+                            className="px-4 py-2 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white col-span-2"
+                        >
+                            <option value="classic">Classic</option>
+                            <option value="time-attack">Time Attack</option>
+                            <option value="moves-limit">Moves Limit</option>
+                        </select>
+
+                        <select
+                            value={theme}
+                            onChange={(e) => setTheme(e.target.value as 'neon' | 'glass' | 'cyber' | 'cosmic')}
+                            className="px-4 py-2 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white col-span-2"
+                        >
+                            <option value="neon">🌟 Neon</option>
+                            <option value="glass">💎 Glass</option>
+                            <option value="cyber">🤖 Cyber</option>
+                            <option value="cosmic">🌌 Cosmic</option>
+                        </select>
+                    </div>
+                </div>
+            )}
+
             {/* Game Status */}
-            <div className="mt-6 text-center text-white/80 relative z-10">
+            <div className="text-center text-white/80 relative z-10 mb-8">
                 <div className="flex items-center justify-center gap-6 text-sm">
                     <div className="flex items-center gap-2">
                         <Star className="w-4 h-4 text-yellow-400" />
@@ -759,7 +767,7 @@ const PuzzleGame: React.FC = () => {
                         onClick={() => setShowLeaderboard(true)}
                         className="flex flex-col items-center text-white/80 hover:text-white transition-all"
                     >
-                        <TrophyIcon className="w-6 h-6" />
+                        <Trophy className="w-6 h-6" />
                         <span className="text-xs mt-1">Leaderboard</span>
                     </button>
 
@@ -783,7 +791,7 @@ const PuzzleGame: React.FC = () => {
                         onClick={() => setShowHelp(true)}
                         className="flex flex-col items-center text-white/80 hover:text-white transition-all"
                     >
-                        <Lightbulb className="w-6 h-6" />
+                        <HelpCircle className="w-6 h-6" />
                         <span className="text-xs mt-1">Help</span>
                     </button>
                 </div>
@@ -915,43 +923,6 @@ const PuzzleGame: React.FC = () => {
                                             <span>Off</span>
                                         </button>
                                     </div>
-                                </div>
-
-                                <div>
-                                    <h3 className="text-white font-medium mb-3">Game Mode</h3>
-                                    <select
-                                        value={gameMode}
-                                        onChange={(e) => setGameMode(e.target.value as 'classic' | 'time-attack' | 'moves-limit')}
-                                        className="w-full px-4 py-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white"
-                                    >
-                                        <option value="classic">Classic (No limits)</option>
-                                        <option value="time-attack">Time Attack</option>
-                                        <option value="moves-limit">Moves Limit</option>
-                                    </select>
-
-                                    {gameMode === 'time-attack' && (
-                                        <div className="mt-3">
-                                            <label className="text-white/80 text-sm mb-1 block">Time Limit (seconds)</label>
-                                            <input
-                                                type="number"
-                                                value={timeLimit}
-                                                onChange={(e) => setTimeLimit(Number(e.target.value))}
-                                                className="w-full px-4 py-2 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white"
-                                            />
-                                        </div>
-                                    )}
-
-                                    {gameMode === 'moves-limit' && (
-                                        <div className="mt-3">
-                                            <label className="text-white/80 text-sm mb-1 block">Moves Limit</label>
-                                            <input
-                                                type="number"
-                                                value={movesLimit}
-                                                onChange={(e) => setMovesLimit(Number(e.target.value))}
-                                                className="w-full px-4 py-2 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white"
-                                            />
-                                        </div>
-                                    )}
                                 </div>
 
                                 <div>
